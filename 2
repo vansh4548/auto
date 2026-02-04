@@ -1,0 +1,277 @@
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Honda from "../assets/images/honda.jpeg";
+import Toyota from "../assets/images/totota.jpeg";
+import Tata from "../assets/images/tata.jpeg";
+import Volkswagen from "../assets/images/volkswagen.jpeg";
+
+const Modal = ({ isOpen, onClose, onSubmit }) => {
+  const [name, setName] = useState("");
+  const [carDetails, setCarDetails] = useState(null);
+  const [phone, setPhone] = useState("");
+  const [overlayStep, setOverlayStep] = useState(null);
+  const [selectedBrand, setSelectedBrand] = useState(null);
+  const [selectedModel, setSelectedModel] = useState(null);
+  const [search, setSearch] = useState("");
+  const brands = [
+    {
+      id: 1,
+      name: "Toyota",
+      logo: Toyota,
+      models: ["Corolla", "Camry", "RAV4"],
+    },
+    { id: 2, name: "Honda", logo: Honda, models: ["Civic", "Accord", "CR-V"] },
+    { id: 3, name: "Tata", logo: Tata, models: ["Safari", "Harrier", "Nexon"] },
+    {
+      id: 4,
+      name: "Volkswagen",
+      logo: Volkswagen,
+      models: ["Golf", "Passat", "Tiguan"],
+    },
+  ];
+  const gasTypes = ["Petrol", "Diesel", "Hybrid", "Electric"];
+  const filteredBrands = brands.filter((b) =>
+    b.name.toLowerCase().includes(search.toLowerCase()),
+  );
+  useEffect(() => {
+    if (isOpen) {
+      const saved = localStorage.getItem("bookingForm");
+      if (saved) {
+        const data = JSON.parse(saved);
+        setName(data.name || "");
+        setPhone(data.phone || "");
+        setCarDetails(data.carDetails || null);
+      }
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const data = { name, phone, carDetails };
+    localStorage.setItem("bookingForm", JSON.stringify(data));
+  }, [name, phone, carDetails]);
+
+  const handleSelectGas = (gas) => {
+    setCarDetails({
+      brand: selectedBrand.name,
+      model: selectedModel,
+      gas,
+      logo: selectedBrand.logo,
+    });
+    setOverlayStep(null);
+    setSelectedBrand(null);
+    setSelectedModel(null);
+    setSearch("");
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => {
+            if (overlayStep) {
+              setOverlayStep(null);
+            } else {
+              onClose();
+            }
+          }}
+        >
+          <motion.div
+            className="bg-white rounded-2xl shadow-lg w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-xl p-6 sm:p-8 md:p-10 relative overflow-y-auto max-h-[90vh]"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.25 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={onClose}
+              className="absolute cursor-pointer top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
+            >
+              ✕
+            </button>
+
+            <h2 className="pbmit-title pb-3 sm:pb-4 text-xl sm:text-2xl font-bold modal-title">
+              Experience Best Car Services
+            </h2>
+            <p className="pbmit-text-editor modal-des text-sm sm:text-base mb-4">
+              Get instant quotes for your car service
+            </p>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                onSubmit({ name, carDetails, phone });
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium mb-1">Name</label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-black focus:outline-none text-sm sm:text-base"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Car Details
+                </label>
+                <div
+                  onClick={() => setOverlayStep("brand")}
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2.5 bg-gray-50 cursor-pointer text-sm sm:text-base"
+                >
+                  {carDetails
+                    ? `${carDetails.brand} - ${carDetails.model} (${carDetails.gas})`
+                    : "Select Brand, Model & Gas"}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Phone</label>
+                <input
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-black focus:outline-none text-sm sm:text-base"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full font-semibold bg-[#b4aa12] text-white py-3 mt-2 cursor-pointer rounded-xl hover:bg-[#3b3906] transition text-sm sm:text-base"
+              >
+                Check Prices For Free
+              </button>
+            </form>
+          </motion.div>
+
+          <AnimatePresence>
+            {overlayStep && (
+              <motion.div
+                className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setOverlayStep(null)}
+              >
+                <motion.div
+                  className="bg-white rounded-2xl shadow-lg w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-xl p-6 sm:p-8 md:p-10 relative overflow-y-auto max-h-[90vh]"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.25 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    onClick={() => setOverlayStep(null)}
+                    className="absolute cursor-pointer top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
+                  >
+                    ✕
+                  </button>
+
+                  {overlayStep === "brand" && (
+                    <div>
+                      <h2 className="pbmit-title pb-3 sm:pb-4 text-lg sm:text-xl font-semibold modal-title">
+                        Select Your Car Brand
+                      </h2>
+                      <input
+                        type="text"
+                        placeholder="Search brand..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full mb-4 px-3 py-2 border border-gray-300 rounded-xl text-sm sm:text-base"
+                      />
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-72 overflow-y-auto pr-2">
+                        {filteredBrands.map((brand) => (
+                          <div
+                            key={brand.id}
+                            onClick={() => {
+                              setSelectedBrand(brand);
+                              setOverlayStep("model");
+                            }}
+                            className="cursor-pointer text-center border border-gray-300 p-3 rounded-xl hover:bg-gray-100 text-sm sm:text-base"
+                          >
+                            <img
+                              src={brand.logo}
+                              alt={brand.name}
+                              className="h-10 mx-auto mb-2"
+                            />
+                            <span>{brand.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {overlayStep === "model" && selectedBrand && (
+                    <div>
+                      <h2 className="pbmit-title pb-3 sm:pb-4 text-lg sm:text-xl font-semibold modal-title">
+                        Select Model ({selectedBrand.name})
+                      </h2>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-72 overflow-y-auto pr-2">
+                        {selectedBrand.models.map((model) => (
+                          <div
+                            key={model}
+                            onClick={() => {
+                              setSelectedModel(model);
+                              setOverlayStep("gas");
+                            }}
+                            className="cursor-pointer text-center border p-3 rounded-xl border-gray-300 hover:bg-gray-100 text-sm sm:text-base"
+                          >
+                            {model}
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => setOverlayStep("brand")}
+                        className="w-full cursor-pointer mt-5 bg-gray-200 text-gray-700 py-2.5 rounded-xl hover:bg-gray-300 transition text-sm sm:text-base"
+                      >
+                        ← &nbsp; Back to Brands
+                      </button>
+                    </div>
+                  )}
+
+                  {overlayStep === "gas" && selectedModel && (
+                    <div>
+                      <h2 className="pbmit-title pb-3 sm:pb-4 text-lg sm:text-xl font-semibold modal-title">
+                        Select Gas Type ({selectedModel})
+                      </h2>
+                      <div className="grid grid-cols-2 gap-4 max-h-72 overflow-y-auto pr-2">
+                        {gasTypes.map((gas) => (
+                          <div
+                            key={gas}
+                            onClick={() => handleSelectGas(gas)}
+                            className="cursor-pointer text-center border p-3 rounded-xl border-gray-300 hover:bg-gray-100 text-sm sm:text-base"
+                          >
+                            {gas}
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => setOverlayStep("model")}
+                        className="w-full cursor-pointer mt-5 bg-gray-200 text-gray-700 py-2.5 rounded-xl hover:bg-gray-300 transition text-sm sm:text-base"
+                      >
+                        ← &nbsp; Back to Models
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export default Modal;
